@@ -1,6 +1,7 @@
 import numpy as np
 from scipy import ndimage
 import cv2 as cv2
+import os
 
 import face_recognition
 
@@ -28,19 +29,26 @@ def YUVtoRGB(byteArray):
 
     return RGBMatrix
 
-def process_faces(image):
-    igor_image = face_recognition.load_image_file("igor.jpg")
-    igor_face_encoding = face_recognition.face_encodings(igor_image)[0]
+def process_faces(rec_image):
+    known_face_encodings = []
 
-    known_face_encodings = [
-        igor_image,
-    ]
-    known_face_names = [
-        "Igor",
-    ]
-    results = face_recognition.compare_faces([igor_image], image)
+    known_face_names = []
+    nomeFotos = os.listdir("./media/fotos")
+    # rec_image = face_recognition.load_image_file(rec_image)
+    rec_enconding = face_recognition.face_encodings(rec_image)[0]
+    for nome in nomeFotos:
+        image = face_recognition.load_image_file("./media/fotos/" + nome)
+        image_enconding = face_recognition.face_encodings(image)[0]
+        known_face_encodings.append(image_enconding)
+        known_face_names.append(nome)
 
-    if results[0] == True:
-        print("It's a picture of me!")
-    else:
-        print("It's not a picture of me!")
+    matches = face_recognition.compare_faces(known_face_encodings, rec_enconding)
+    name = "Unknown"
+    face_distances = face_recognition.face_distance(known_face_encodings, rec_enconding)
+    best_match_index = np.argmin(face_distances)
+    if matches[best_match_index]:
+        name = known_face_names[best_match_index]
+
+
+
+    print(name)
